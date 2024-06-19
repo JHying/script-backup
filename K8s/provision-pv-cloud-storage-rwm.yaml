@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: env-share-pv
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 50Gi
+  storageClassName: cloud-storage-class
+  claimRef:
+    namespace: default
+    name: env-share-pvc
+  mountOptions:
+    - uid=100
+    - gid=101
+    - debug_fuse
+  csi:
+    driver: gcsfuse.csi.storage.gke.io
+    volumeHandle: gke_prod_volume
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: env-share-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: cloud-storage-class
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pv-init-job
+  labels:
+    app: pv-init-pod
+spec:
+  backoffLimit: 2  # Pod失敗時的重試次數
+  #ttlSecondsAfterFinished: 60  # Pod完成後60秒自動刪除
+  template:
+    metadata:
+      labels:
+        app: pv-init-pod
+      annotations:
+        gke-gcsfuse/volumes: "true"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: gke-service-account  # 這個 account 必須與具備 cloud storage 權限的 iam account 綁定
+      containers:
+        - name: pv-init
+          image: alpine
+          command: ["sh", "-c", "echo 'Initializing PV'; sleep 10"]  # 印一條init訊息並等待10秒，然後完成該pod(非啟動)
+          volumeMounts:  # 綁定到容器內的位置，設定任何 volumeMounts 都需要在下面的 volumes 有定義
+            - mountPath: /mnt/share
+              name: env-share-vol
+      volumes:
+        - name: env-share-vol
+          persistentVolumeClaim:
+            claimName: env-share-pvc

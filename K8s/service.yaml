@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-service
+  namespace: development
+spec:
+  selector:
+  ###目標 pod
+    app: pod-info
+  ports:
+  ###入口 port
+    - port: 80
+    ###導流 pod port
+      targetPort: 3000
+      protocol: TCP
+  ###預設是 ClusterIP
+  type: LoadBalancer
+
+# ClusterIP: 僅集群內部可訪問。
+# NodePort: 使用 Node 的 IP 和連接埠供外部連線。
+# LoadBalancer: 使用 Cloud 的負載均衡器(如 GCP LB)，供外部連線。
+# ExternalName: 將 Service 名稱映射到一個外部 DNS 名稱。
+# Headless: 沒有 ClusterIP，外部可直接訪問 Pod，用於有狀態應用。

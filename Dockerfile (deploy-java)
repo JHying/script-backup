@@ -1,0 +1,13 @@
+#環境映像檔（可以自己去dockerhub找合適的） 
+FROM ubuntu:22.04 as builder 
+MAINTAINER rita
+WORKDIR /usr/user
+ENV JAVA_HOME=/usr/local/java
+ENV PATH="$PATH:$JAVA_HOME/bin"
+ENV TZ=Asia/Taipei
+#將檔案新增進容器
+ADD java-service.jar java-service.jar
+#服務對應的連接埠
+EXPOSE 8081
+#容器啟動之後執行的命令 
+ENTRYPOINT ["java","-jar","java-service.jar"]
