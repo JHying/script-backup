@@ -3,14 +3,17 @@ kind: Pod
 metadata:
   name: debug-pod
 spec:
+  serviceAccountName: gke-service-account
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
   containers:
     - name: debug-container
       image: busybox
-      command:
-        - sleep
-        - "3600"
+      command: ["sh", "-c", "ls /mnt/env && sleep 3600"]
       volumeMounts: #將PV掛載到容器裡的哪個路徑(之後可以從這個路徑上傳要共享的內容)
-        - mountPath: /mnt/usr
+        - mountPath: /mnt/env
           name: env-share-vol
   volumes:
     - name: env-share-vol

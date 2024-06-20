@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debug-pod-deploy
+  labels:
+    app: debug-pod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: debug-pod
+  template:
+    metadata:
+      labels:
+        app: debug-pod
+      annotations:
+        gke-gcsfuse/volumes: "true"
+    spec:
+      restartPolicy: Always
+      serviceAccountName: gke-service-account
+      containers:
+        - name: debug-container
+          image: gotechnies/alpine-ssh:latest
+          command: ["sh", "-c", "ls /mnt/env && sleep 3600"]
+          volumeMounts: #將PV掛載到容器裡的哪個路徑(之後可以從這個路徑上傳要共享的內容)
+            - mountPath: /mnt/env
+              name: env-share-vol
+      volumes:
+        - name: env-share-vol
+          persistentVolumeClaim:
+            claimName: env-share-pvc

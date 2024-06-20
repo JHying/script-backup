@@ -1,0 +1,31 @@
+---
+# DaemonSet會在每個node上執行一個副本，這邊是在每個node都建立一個操作gcs空間的pod
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gcsfuse-daemonset
+  labels:
+    app: gcsfuse-daemon
+spec:
+  selector:
+    matchLabels:
+      app: gcsfuse-daemon
+  template:
+    metadata:
+      labels:
+        app: gcsfuse-daemon
+      annotations:
+        gke-gcsfuse/volumes: "true"
+    spec:
+      serviceAccountName: gke-service-account  # 這個 account 必須與具備 cloud storage 權限的 iam account 綁定
+      containers:
+        - name: gcsfuse-init
+          image: busybox
+          command: ["sh", "-c", "echo 'Initializing GCS debug pod'; sleep 10"]  # 印一條init訊息並等待10秒，然後完成該pod(非啟動)
+          volumeMounts:  # 綁定到容器內的位置，設定任何 volumeMounts 都需要在下面的 volumes 有定義
+            - mountPath: /mnt/env
+              name: env-share-vol
+      volumes:
+        - name: env-share-vol
+          persistentVolumeClaim:
+            claimName: env-share-pvc
