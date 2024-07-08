@@ -17,7 +17,7 @@ export REDIS_HOME=/home/user/redis
 ###redis
 docker stop redis
 docker rm redis
-docker run -p 6379:6379 --name redis --network test-env --ip 172.20.0.4 --restart always -v $REDIS_HOME/data:/data -v $REDIS_HOME/conf:/etc/redis/redis.conf -d redis redis-server /etc/redis/redis.conf
+docker run -p 6379:6379 --name redis --network test-env --ip 172.20.0.4 --restart always -v $REDIS_HOME/data:/data -v $REDIS_HOME/conf:/usr/local/redis -d redis redis-server /usr/local/redis/redis.conf
 
 ###mysql
 docker stop mysql8
